@@ -1,12 +1,166 @@
 <html>
   <head>
     <script src="https://d3js.org/d3.v7.min.js"></script>
-    <style></style>
+    <style>
+      body {
+        background-color: #393939;
+        color: white; /* Set text color to white for better visibility */
+      }
+    </style>
   </head>
   <body>
-    <h1>INFO4310 - HW4</h1>
+    <div class="header">
+      <img src="images/header.png" alt="Header" id="headerImg" />
+    </div>
+    <svg id="filters" height="700" width="600" style="margin-left: 121px"></svg>
+    <svg
+      id="bubbleGraph"
+      height="700"
+      width="600"
+      style="margin-left: 20px"
+    ></svg>
   </body>
   <script>
+    const filterSvg = d3.select("#filters");
+    const filterWidth = filterSvg.attr("width");
+    const filterHeight = filterSvg.attr("height");
 
+    const bubbleSvg = d3.select("#bubbleGraph");
+    const bubbleWidth = bubbleSvg.attr("width");
+    const bubbleHeight = bubbleSvg.attr("height");
+
+    const placementHelper = (height, width, i) => {
+      if (i < 3) {
+        return `translate(${(filterWidth / 4) * (i + 1) - 15 / 2}, ${
+          filterHeight / 5
+        })`;
+      } else if (i < 6) {
+        i = i - 3;
+        return `translate(${(filterWidth / 4) * (i + 1) - 15 / 2}, ${
+          (filterHeight / 5) * 2
+        })`;
+      } else if (i < 9) {
+        i = i - 5;
+        return `translate(${(filterWidth / 4) * (i + 1) - 15 / 2}, ${
+          (filterHeight / 5) * 3
+        })`;
+      }
+    };
+
+    const addFilterButtons = (labels, svg) => {
+      labels.forEach((label, i) => {
+        const button = svg
+          .data([label])
+          .append("g")
+          .attr("transform", `translate(10, ${i * 55 + 50})`)
+          .attr("class", "g-color")
+          .on("click", () => handleFilterClick(label, svg));
+
+        button
+          .append("rect")
+          .attr(
+            "class",
+            `rect-${
+              label == "Peanuty Almondy"
+                ? "peanutyalmondy"
+                : label == "Crisped Rice Wafer"
+                ? "crispedricewafer"
+                : label
+            } color-rect`
+          )
+          .attr("width", 17)
+          .attr("height", 17)
+          .attr("y", i)
+          .style("border-radius", "20px")
+          .attr("fill", "none")
+          .attr("stroke", "white");
+        // .on("click", () => handleFilterClick(label, svg));
+
+        button
+          .append("text")
+          .attr(
+            "class",
+            `rect-${
+              label == "Peanuty Almondy"
+                ? "peanutyalmondy"
+                : label == "Crisped Rice Wafer"
+                ? "crispedricewafer"
+                : label
+            } color-text`
+          )
+          .text(label)
+          .attr("x", 25)
+          .attr("y", i + 14)
+          .style("font-size", "20px")
+          .style("fill", "white");
+        // .on("click", () => handleFilterClick(label, svg));
+      });
+    };
+
+    let boxStates = {};
+
+    const handleFilterClick = (label, svg) => {
+      const box = svg.select(
+        `.rect-${
+          label == "Peanuty Almondy"
+            ? "peanutyalmondy"
+            : label == "Crisped Rice Wafer"
+            ? "crispedricewafer"
+            : label
+        }`
+      );
+      if (boxStates[label] === undefined || !boxStates[label]) {
+        box.attr("fill", "#FF932C").attr("stroke", "#FF932C");
+        boxStates[label] = true;
+      } else {
+        box.attr("fill", "none").attr("stroke", "white");
+        boxStates[label] = false;
+      }
+    };
+
+    const getData = async () => {
+      const data = await d3.csv("candy-data.csv");
+      console.log(data);
+      const filters = [
+        "Chocolate",
+        "Fruity",
+        "Caramel",
+        "Peanuty Almondy",
+        "Nougat",
+        "Crisped Rice Wafer",
+        "Hard",
+        "Bar",
+        "Pluribus",
+      ];
+      addFilterButtons(filters, filterSvg);
+
+      const radiusScale = d3
+        .scaleLinear()
+        .domain(d3.extent(data, (d) => parseFloat(d["winpercent"])))
+        .range([5, 50]);
+
+      const pack = d3
+        .pack()
+        .size([bubbleWidth - 2, bubbleHeight - 2])
+        .padding(5);
+
+      const root = d3.hierarchy({ children: data }).sum((d) => d["winpercent"]);
+
+      pack(root);
+
+      const bubbles = bubbleSvg
+        .selectAll(".bubble")
+        .data(root.leaves())
+        .enter()
+        .append("circle")
+        .attr("class", "bubble")
+        .attr("cx", (d) => d.x)
+        .attr("cy", (d) => d.y)
+        .attr("r", (d) => radiusScale(parseFloat(d.data.winpercent)))
+        .attr("fill", "blue")
+        .attr("opacity", 0.7);
+    };
+
+    getData();
   </script>
 </html>
