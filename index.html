@@ -6,6 +6,9 @@
         background-color: #393939;
         color: white; /* Set text color to white for better visibility */
       }
+      .display-none {
+        display: none;
+      }
     </style>
   </head>
   <body>
@@ -24,6 +27,8 @@
     const filterSvg = d3.select("#filters");
     const filterWidth = filterSvg.attr("width");
     const filterHeight = filterSvg.attr("height");
+
+    const appliedFilters = [];
 
     const bubbleSvg = d3.select("#bubbleGraph");
     const bubbleWidth = bubbleSvg.attr("width");
@@ -49,7 +54,32 @@
 
     const addFilterButtons = (labels, svg) => {
       labels.forEach((label, i) => {
-        const button = svg
+        if(label === "Deselect All"){
+          const button = svg
+          .data([label])
+          .append("g")
+          .attr("transform", `translate(0, ${i * 55 + 50})`)
+          .attr("class", "g-color")
+          .on("click", () => handleFilterClick(label, svg));
+          button
+          .append("text")
+          .attr(
+            "class",
+            `rect-${
+              label == "Peanuty Almondy"
+                ? "peanutyalmondy"
+                : label == "Crisped Rice Wafer"
+                ? "crispedricewafer"
+                : label
+            } color-text`
+          )
+          .text(label)
+          .attr("x", 10)
+          .attr("y", i + 14)
+          .style("font-size", "20px")
+          .style("fill", "white");
+        } else {
+          const button = svg
           .data([label])
           .append("g")
           .attr("transform", `translate(10, ${i * 55 + 50})`)
@@ -74,7 +104,6 @@
           .style("border-radius", "20px")
           .attr("fill", "none")
           .attr("stroke", "white");
-        // .on("click", () => handleFilterClick(label, svg));
 
         button
           .append("text")
@@ -93,33 +122,55 @@
           .attr("y", i + 14)
           .style("font-size", "20px")
           .style("fill", "white");
-        // .on("click", () => handleFilterClick(label, svg));
+
+        }
+        
       });
     };
 
     let boxStates = {};
 
     const handleFilterClick = (label, svg) => {
-      const box = svg.select(
-        `.rect-${
-          label == "Peanuty Almondy"
+      let modifiedLabel = label == "Peanuty Almondy"
             ? "peanutyalmondy"
             : label == "Crisped Rice Wafer"
             ? "crispedricewafer"
-            : label
-        }`
-      );
-      if (boxStates[label] === undefined || !boxStates[label]) {
-        box.attr("fill", "#FF932C").attr("stroke", "#FF932C");
-        boxStates[label] = true;
+            : label;
+      if(modifiedLabel === "Deselect All"){
+        svg.selectAll(".color-rect").attr("fill", "none").attr("stroke", "white");
+        appliedFilters.length = 0;
       } else {
-        box.attr("fill", "none").attr("stroke", "white");
-        boxStates[label] = false;
+        const box = svg.select(
+          `.rect-${modifiedLabel
+          }`
+        );
+        if (boxStates[modifiedLabel] === undefined || !boxStates[modifiedLabel]) {
+          box.attr("fill", "#FF932C").attr("stroke", "#FF932C");
+          boxStates[modifiedLabel] = true;
+          appliedFilters.push(modifiedLabel);
+        } else {
+          box.attr("fill", "none").attr("stroke", "white");
+          boxStates[modifiedLabel] = false;
+          appliedFilters.splice(appliedFilters.indexOf(modifiedLabel), 1);
+        }
+
       }
+      const c = appliedFilters.join(' '); // Join filters with spaces
+
+      if(!c){
+        bubbleSvg.selectAll(".candy").classed("display-none", false);
+      } else{
+        bubbleSvg.selectAll(".candy").classed("display-none", d => !c || !c.split(' ').some(f => classString[d.data.competitorname].includes(f)));
+      }
+            
+      
     };
 
+    const classString = {};
+
     const getData = async () => {
-      const data = await d3.csv("candy-data.csv");
+      const allData = await d3.csv("candy-data.csv");
+      const data = allData.filter(item => item.competitorname !== "One dime" && item.competitorname !== "One quarter");
       console.log(data);
       const filters = [
         "Chocolate",
@@ -131,8 +182,15 @@
         "Hard",
         "Bar",
         "Pluribus",
+        "Deselect All"
       ];
       addFilterButtons(filters, filterSvg);
+
+      data.forEach((d) => {
+        classString[d["competitorname"]] = `candy ${d["competitorname"]} ${d["chocolate"] === "1" ? "Chocolate" : ""} ${d["fruity"] === "1" ? "Fruity" : ""} ${d["caramel"] === "1" ? "Caramel" : ""} ${d["peanutyalmondy"] === "1" ? "peanutyalmondy" : ""} ${d["nougat"] === "1" ? "Nougat" : ""} ${d["crispedricewafer"] === "1" ? "crispedricewafer" : ""} ${d["hard"] === "1" ? "Hard" : ""} ${d["bar"] === "1" ? "Bar" : ""} ${d["pluribus"] === "1" ? "Pluribus" : ""}`
+      })
+
+      console.log("class", classString);
 
       const radiusScale = d3
         .scaleLinear()
@@ -142,7 +200,7 @@
       const pack = d3
         .pack()
         .size([bubbleWidth, bubbleHeight])
-        .padding(5);
+        .padding(2);
 
       const root = d3.hierarchy({ children: data }).sum((d) => d["winpercent"]);
 
@@ -152,18 +210,40 @@
                           .force("charge", d3.forceManyBody().strength(10))
                           .force("collide", d3.forceCollide().radius(d => radiusScale(parseFloat(d.data.winpercent))))
                           .on("tick", () => {
-                            bubbles.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
+                            bubbles.attr("x", (d) => d.x - radiusScale(parseFloat(d.data.winpercent)))
+                                    .attr("y", (d) => d.y - radiusScale(parseFloat(d.data.winpercent)));
                           });
 
+      // const bubbles = bubbleSvg
+      //   .selectAll(".candy")
+      //   .data(root.leaves())
+      //   .enter()
+      //   .append("circle")
+      //   .attr("class", (d) => classString[d.data.competitorname])
+      //   .attr("cx", (d) => d.x).attr("cy", (d) => d.y)
+      //   .attr("r", (d) => radiusScale(parseFloat(d.data.winpercent)))
+      //   .attr("fill", "blue")
+      //   .attr("opacity", 0.7)
+      //   .on("mouseover", (event, d) => {
+      //     console.log(d.data);
+      //   });
+
       const bubbles = bubbleSvg
-        .selectAll(".bubble")
+        .selectAll(".candy")
         .data(root.leaves())
         .enter()
-        .append("circle")
-        .attr("class", "bubble").attr("cx", (d) => d.x).attr("cy", (d) => d.y)
-        .attr("r", (d) => radiusScale(parseFloat(d.data.winpercent)))
-        .attr("fill", "blue")
-        .attr("opacity", 0.7);
+        .append("image")
+        .attr("class", (d) => classString[d.data.competitorname])
+        .attr("xlink:href", "images/candyIcon.svg")
+        .attr("x", (d) => d.x - radiusScale(parseFloat(d.data.winpercent)))
+        .attr("y", (d) => d.y - radiusScale(parseFloat(d.data.winpercent)))
+        .attr("width", (d) => 2 * radiusScale(parseFloat(d.data.winpercent)))
+        .attr("height", (d) => 2 * radiusScale(parseFloat(d.data.winpercent)))
+        .style("fill", "blue")
+        .attr("opacity", 0.7)
+        .on("mouseover", (event, d) => {
+          console.log(d.data);
+        });
     };
 
     getData();
