@@ -5,43 +5,44 @@
       body {
         background-color: #393939;
         color: white; /* Set text color to white for better visibility */
-        font-family:'SF Pro Compact', 'SF Pro', sans-serif
+        font-family: "SF Pro Compact", "SF Pro", sans-serif;
       }
 
-      .header{
+      .header {
         text-align: center;
         margin-top: 40px;
       }
 
-      #body{
-        display: flex; 
+      #body {
+        display: flex;
         flex-direction: row;
-        margin-left:10%;
-        margin-right:10%;
+        margin-left: 10%;
+        margin-right: 10%;
         margin-top: 40px;
+        justify-content: center;
       }
 
       .display-none {
         display: none;
       }
 
-      #footer{
+      #footer {
         text-align: right;
         margin-bottom: 60px;
         padding-right: 60px;
       }
-      
     </style>
   </head>
   <body>
     <div class="header">
       <img src="images/header.svg" alt="Header" id="headerImg" />
+    </div>
     <div id="body">
-      <svg id="filters" height="600" width="240" ></svg>
-      <svg id="bubbleGraph" height="660" width="870"></svg> 
+      <svg id="filters" height="600" width="350"></svg>
+      <svg id="bubbleGraph" height="660" width="700"></svg>
     </div>
     <div id="footer">
-      <p> *the chart above shows the top 50 candies by win-rate </p>
+      <p>*the chart above shows the top 50 candies by win-rate</p>
     </div>
   </body>
   <script>
@@ -54,6 +55,15 @@
     const bubbleSvg = d3.select("#bubbleGraph");
     const bubbleWidth = bubbleSvg.attr("width");
     const bubbleHeight = bubbleSvg.attr("height");
+
+    const allergens = {
+      Chocolate: ["Milk", "Nuts", "Soy", "Gluten", "Eggs"],
+      Fruity: ["Fruit Juices", "Gelatin", "Food Dyes", "Sulfites", "Corn"],
+      Caramel: ["Milk", "Nuts", "Soy", "Corn", "Eggs"],
+      PeanutyAlmondy: ["Peanuts", "Almonds", "Tree Nuts", "Soy", "Dairy"],
+      Nougat: ["Nuts", "Eggs", "Dairy", "Soy", "Gluten"],
+      CrispedRiceWafer: ["Gluten", "Soy", "Dairy", "Nuts", "Sulfites"],
+    };
 
     const placementHelper = (height, width, i) => {
       if (i < 3) {
@@ -73,102 +83,184 @@
       }
     };
 
+    const handleDisplayHover = (label, OnOff) => {
+      d3.select(`.g-color.${label.replace(/ /g, "")}`).raise();
+      if (OnOff) {
+        d3.selectAll(`.tooltip-${label.replace(/ /g, "")}`).classed(
+          "display-none",
+          false
+        );
+      } else {
+        d3.selectAll(`.tooltip-${label.replace(/ /g, "")}`).classed(
+          "display-none",
+          true
+        );
+      }
+    };
+
     const addFilterButtons = (labels, svg) => {
       labels.forEach((label, i) => {
-        if(label === "Deselect All"){
+        if (label === "Deselect All") {
           const button = svg
-          .data([label])
-          .append("g")
-          .attr("transform", `translate(0, ${i * 55 + 50})`)
-          .attr("class", "g-color")
-          .on("click", () => handleFilterClick(label, svg));
+            .data([label])
+            .append("g")
+            .attr("transform", `translate(0, ${i * 55 + 50})`)
+            .attr("class", `g-color ${label.replace(" ", "")}`)
+            .on("click", () => handleFilterClick(label, svg));
           button
-          .append("text")
-          .attr(
-            "class",
-            `rect-${
-              label == "Peanuty Almondy"
-                ? "peanutyalmondy"
-                : label == "Crisped Rice Wafer"
-                ? "crispedricewafer"
-                : label
-            } color-text`
-          )
-          .text(label)
-          .attr("x", 10)
-          .attr("y", i + 14)
-          .style("font-size", "20px")
-          .style("fill", "white");
+            .append("text")
+            .attr(
+              "class",
+              `rect-${
+                label == "Peanuty Almondy"
+                  ? "peanutyalmondy"
+                  : label == "Crisped Rice Wafer"
+                  ? "crispedricewafer"
+                  : label
+              } color-text`
+            )
+            .text(label)
+            .attr("x", 10)
+            .attr("y", i + 14)
+            .style("font-size", "20px")
+            .style("fill", "white");
         } else {
           const button = svg
-          .data([label])
-          .append("g")
-          .attr("transform", `translate(10, ${i * 55 + 50})`)
-          .attr("class", "g-color")
-          .on("click", () => handleFilterClick(label, svg));
+            .data([label])
+            .append("g")
+            .attr("transform", `translate(10, ${i * 55 + 50})`)
+            .attr("class", `g-color ${label.replace(/ /g, "")}`)
+            .on("click", () => handleFilterClick(label, svg))
+            .on("mouseover", () => handleDisplayHover(label, true))
+            .on("mouseout", () => handleDisplayHover(label, false));
 
-        button
-          .append("rect")
-          .attr(
-            "class",
-            `rect-${
-              label == "Peanuty Almondy"
-                ? "peanutyalmondy"
-                : label == "Crisped Rice Wafer"
-                ? "crispedricewafer"
-                : label
-            } color-rect`
-          )
-          .attr("width", 17)
-          .attr("height", 17)
-          .attr("y", i)
-          .attr("rx", 4)
-          .attr("ry", 4)
-          .style("margin", "20")
-          .attr("fill", "none")
-          .attr("stroke", "#D9D9D9")
-          .attr("stroke-width", 2);
+          button
+            .append("rect")
+            .attr(
+              "class",
+              `rect-${
+                label == "Peanuty Almondy"
+                  ? "peanutyalmondy"
+                  : label == "Crisped Rice Wafer"
+                  ? "crispedricewafer"
+                  : label
+              } color-rect`
+            )
+            .attr("width", 17)
+            .attr("height", 17)
+            .attr("y", i)
+            .attr("rx", 4)
+            .attr("ry", 4)
+            .style("margin", "20")
+            .attr("fill", "none")
+            .attr("stroke", "#D9D9D9")
+            .attr("stroke-width", 2);
 
-        button
-          .append("text")
-          .attr(
-            "class",
-            `rect-${
-              label == "Peanuty Almondy"
-                ? "peanutyalmondy"
-                : label == "Crisped Rice Wafer"
-                ? "crispedricewafer"
-                : label
-            } color-text`
-          )
-          .text(label)
-          .attr("x", 25)
-          .attr("y", i + 14)
-          .style("font-size", "20px")
-          .style("fill", "white");
+          button
+            .append("text")
+            .attr(
+              "class",
+              `rect-${
+                label == "Peanuty Almondy"
+                  ? "peanutyalmondy"
+                  : label == "Crisped Rice Wafer"
+                  ? "crispedricewafer"
+                  : label
+              } color-text`
+            )
+            .text(label)
+            .attr("x", 25)
+            .attr("y", i + 14)
+            .style("font-size", "20px")
+            .style("fill", "white");
 
+          if (label.replace(/ /g, "") in allergens) {
+            const sizes = button.node().getBBox();
+            console.log(button.node());
+            const tooltip = button
+              .append("g")
+              .attr("class", `tooltip tooltip-${label.replace(/ /g, "")}`)
+              .attr(
+                "transform",
+                `translate(${sizes.width + 10}, ${-sizes.height - 15})`
+              );
+
+            tooltip
+              .append("rect")
+              .attr("class", `tooltip tooltip-${label.replace(/ /g, "")}`)
+              .attr("width", 130)
+              .attr("height", 120)
+              .attr("fill", "white")
+              .attr("rx", 5)
+              .attr("ry", 5)
+              .attr("stroke", "black")
+              .attr("stroke-width", 1);
+            tooltip
+              .append("text")
+              .text("Potential Allergens:")
+              .attr("class", `tooltip tooltip-${label.replace(/ /g, "")}`)
+              .attr("x", 5)
+              .attr("y", 15)
+              .style("font-size", "13px")
+              .style("font-weight", "bold")
+              .style("fill", "black");
+
+            allergens[label.replace(/ /g, "")].forEach((allergen, i) => {
+              tooltip
+                .append("text")
+                .text(allergen)
+                .attr("class", `tooltip tooltip-${label.replace(/ /g, "")}`)
+                .attr("x", 5)
+                .attr("y", 35 + i * 20)
+                .style("font-size", "13px")
+                .style("fill", "black");
+            });
+          }
         }
-        
       });
+
+      d3.selectAll(".tooltip").classed("display-none", true);
+
+      d3.selectAll(".g-color")
+        .append("rect")
+        .attr("class", "clickable")
+        .attr(
+          "width",
+          (d) =>
+            d3
+              .select(`.${d.replace(/ /g, "")}`)
+              .node()
+              .getBBox().width + 10
+        )
+        .attr("height", 30)
+        .attr("x", -2)
+        .attr("y", -3)
+        .attr("fill", "none")
+        .attr("pointer-events", "all")
+        .attr("cursor", "pointer");
     };
 
     let boxStates = {};
 
     const handleFilterClick = (label, svg) => {
-      let modifiedLabel = label == "Peanuty Almondy"
-            ? "peanutyalmondy"
-            : label == "Crisped Rice Wafer"
-            ? "crispedricewafer"
-            : label;
-      if(modifiedLabel === "Deselect All"){
-        svg.selectAll(".color-rect").attr("fill", "none").attr("stroke", "white");
+      let modifiedLabel =
+        label == "Peanuty Almondy"
+          ? "peanutyalmondy"
+          : label == "Crisped Rice Wafer"
+          ? "crispedricewafer"
+          : label;
+      if (modifiedLabel === "Deselect All") {
+        svg
+          .selectAll(".color-rect")
+          .attr("fill", "none")
+          .attr("stroke", "white");
         appliedFilters.length = 0;
       } else {
-        const box = svg.select(
-          `.rect-${modifiedLabel
-          }`
-        );
-        if (boxStates[modifiedLabel] === undefined || !boxStates[modifiedLabel]) {
+        const box = svg.select(`.rect-${modifiedLabel}`);
+        if (
+          boxStates[modifiedLabel] === undefined ||
+          !boxStates[modifiedLabel]
+        ) {
           box.attr("fill", "#FF932C").attr("stroke", "#FF932C");
           boxStates[modifiedLabel] = true;
           appliedFilters.push(modifiedLabel);
@@ -177,24 +269,34 @@
           boxStates[modifiedLabel] = false;
           appliedFilters.splice(appliedFilters.indexOf(modifiedLabel), 1);
         }
-
       }
-      const c = appliedFilters.join(' '); // Join filters with spaces
+      const c = appliedFilters.join(" "); // Join filters with spaces
 
-      if(!c){
+      if (!c) {
         bubbleSvg.selectAll(".candy").classed("display-none", false);
-      } else{
-        bubbleSvg.selectAll(".candy").classed("display-none", d => !c || !c.split(' ').some(f => classString[d.data.competitorname].includes(f)));
+      } else {
+        bubbleSvg
+          .selectAll(".candy")
+          .classed(
+            "display-none",
+            (d) =>
+              !c ||
+              !c
+                .split(" ")
+                .some((f) => classString[d.data.competitorname].includes(f))
+          );
       }
-            
-      
     };
 
     const classString = {};
 
     const getData = async () => {
       const allData = await d3.csv("candy-data.csv");
-      const data = allData.filter(item => item.competitorname !== "One dime" && item.competitorname !== "One quarter");
+      const data = allData.filter(
+        (item) =>
+          item.competitorname !== "One dime" &&
+          item.competitorname !== "One quarter"
+      );
       console.log(data);
       const filters = [
         "Chocolate",
@@ -206,13 +308,23 @@
         "Hard",
         "Bar",
         "Pluribus",
-        "Deselect All"
+        "Deselect All",
       ];
       addFilterButtons(filters, filterSvg);
 
       data.forEach((d) => {
-        classString[d["competitorname"]] = `candy ${d["competitorname"]} ${d["chocolate"] === "1" ? "Chocolate" : ""} ${d["fruity"] === "1" ? "Fruity" : ""} ${d["caramel"] === "1" ? "Caramel" : ""} ${d["peanutyalmondy"] === "1" ? "peanutyalmondy" : ""} ${d["nougat"] === "1" ? "Nougat" : ""} ${d["crispedricewafer"] === "1" ? "crispedricewafer" : ""} ${d["hard"] === "1" ? "Hard" : ""} ${d["bar"] === "1" ? "Bar" : ""} ${d["pluribus"] === "1" ? "Pluribus" : ""}`
-      })
+        classString[d["competitorname"]] = `candy ${d["competitorname"]} ${
+          d["chocolate"] === "1" ? "Chocolate" : ""
+        } ${d["fruity"] === "1" ? "Fruity" : ""} ${
+          d["caramel"] === "1" ? "Caramel" : ""
+        } ${d["peanutyalmondy"] === "1" ? "peanutyalmondy" : ""} ${
+          d["nougat"] === "1" ? "Nougat" : ""
+        } ${d["crispedricewafer"] === "1" ? "crispedricewafer" : ""} ${
+          d["hard"] === "1" ? "Hard" : ""
+        } ${d["bar"] === "1" ? "Bar" : ""} ${
+          d["pluribus"] === "1" ? "Pluribus" : ""
+        }`;
+      });
 
       console.log("class", classString);
 
@@ -221,22 +333,26 @@
         .domain(d3.extent(data, (d) => parseFloat(d["winpercent"])))
         .range([15, 50]);
 
-      const pack = d3
-        .pack()
-        .size([bubbleWidth, bubbleHeight])
-        .padding(2);
+      const pack = d3.pack().size([bubbleWidth, bubbleHeight]).padding(2);
 
       const root = d3.hierarchy({ children: data }).sum((d) => d["winpercent"]);
 
       pack(root);
 
-      const simulation = d3.forceSimulation(root.leaves())
-                          .force("charge", d3.forceManyBody().strength(10))
-                          .force("collide", d3.forceCollide().radius(d => radiusScale(parseFloat(d.data.winpercent))))
-                          .on("tick", () => {
-                            bubbles.attr("x", (d) => d.x - radiusScale(parseFloat(d.data.winpercent)))
-                                    .attr("y", (d) => d.y - radiusScale(parseFloat(d.data.winpercent)));
-                          });
+      const simulation = d3
+        .forceSimulation(root.leaves())
+        .force("charge", d3.forceManyBody().strength(10))
+        .force(
+          "collide",
+          d3
+            .forceCollide()
+            .radius((d) => radiusScale(parseFloat(d.data.winpercent)))
+        )
+        .on("tick", () => {
+          bubbles
+            .attr("x", (d) => d.x - radiusScale(parseFloat(d.data.winpercent)))
+            .attr("y", (d) => d.y - radiusScale(parseFloat(d.data.winpercent)));
+        });
 
       // const bubbles = bubbleSvg
       //   .selectAll(".candy")
