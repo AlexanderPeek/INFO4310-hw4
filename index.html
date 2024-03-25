@@ -311,6 +311,36 @@
 
     const classString = {};
 
+    const generateLabels = (data) => {
+      const topData = data
+        .sort((a, b) => b["winpercent"] - a["winpercent"])
+        .slice(0, 5);
+      console.log(topData);
+
+      topData.forEach((d) => {
+        const label = d3
+          .select(
+            `.${classString[d["competitorname"]]
+              .replace(/\s+/g, " ")
+              .trim()
+              .replace(/ /g, ".")
+              .toLowerCase()
+              .replace("reese's.", "")}`
+          )
+          .append("g")
+          .attr("transfrom", "translate(0, 20)");
+
+        label
+          .append("text")
+          .text(d["competitorname"])
+          .attr("x", 0)
+          .attr("y", 0)
+          .style("font-size", "10px")
+          .style("fill", "white")
+          .attr("transform", `translate(0, 20)`);
+      });
+    };
+
     const runForce = (data) => {
       d3.selectAll(".candy").remove();
 
@@ -323,7 +353,7 @@
       const radiusScale = d3
         .scaleLinear()
         .domain(d3.extent(filteredData, (d) => parseFloat(d["winpercent"])))
-        .range([5, 100]);
+        .range([10, 100]);
 
       const pack = d3.pack().size([bubbleWidth, bubbleHeight]).padding(2);
 
@@ -406,17 +436,15 @@
 
       const simulation = d3
         .forceSimulation(root.leaves())
-        .force("charge", d3.forceManyBody().strength(25))
+        .force("charge", d3.forceManyBody().strength(10))
         .force(
           "collide",
           d3
             .forceCollide()
-            .radius((d) => radiusScale(parseFloat(d.data.winpercent)))
+            .radius((d) => radiusScale(parseFloat(d.data.winpercent)) + 1)
         )
         .on("tick", () => {
-          bubbles
-            .attr("x", (d) => d.x - radiusScale(parseFloat(d.data.winpercent)))
-            .attr("y", (d) => d.y - radiusScale(parseFloat(d.data.winpercent)));
+          bubbles.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
         });
 
       // console.log(nodes);
@@ -440,18 +468,31 @@
         .selectAll(".candy")
         .data(root.leaves())
         .enter()
-        .append("image")
+        .append("circle")
         .attr("class", (d) => classString[d.data.competitorname])
-        .attr("xlink:href", "images/candyIcon.svg")
-        .attr("x", (d) => d.x - radiusScale(parseFloat(d.data.winpercent)))
-        .attr("y", (d) => d.y - radiusScale(parseFloat(d.data.winpercent)))
-        .attr("width", (d) => 2 * radiusScale(parseFloat(d.data.winpercent)))
-        .attr("height", (d) => 2 * radiusScale(parseFloat(d.data.winpercent)))
-        .style("fill", "blue")
-        .attr("opacity", 0.7)
-        .on("mouseover", (event, d) => {
-          console.log(d.data);
-        });
+        .attr("r", (d) => radiusScale(parseFloat(d.data.winpercent)))
+        .style("fill", "orange")
+        .attr("opacity", 0.7);
+      // .on("mouseover", (event, d) => {
+      //   console.log(d.data);
+      // });
+
+      // const bubbles = bubbleSvg
+      //   .selectAll(".candy")
+      //   .data(root.leaves())
+      //   .enter()
+      //   .append("image")
+      //   .attr("class", (d) => classString[d.data.competitorname])
+      //   .attr("xlink:href", "images/candyIcon.svg")
+      //   .attr("x", (d) => d.x - radiusScale(parseFloat(d.data.winpercent)))
+      //   .attr("y", (d) => d.y - radiusScale(parseFloat(d.data.winpercent)))
+      //   .attr("width", (d) => 2 * radiusScale(parseFloat(d.data.winpercent)))
+      //   .attr("height", (d) => 2 * radiusScale(parseFloat(d.data.winpercent)))
+      //   .style("fill", "blue")
+      //   .attr("opacity", 0.7)
+      //   .on("mouseover", (event, d) => {
+      //     console.log(d.data);
+      //   });
     };
 
     const getData = async () => {
@@ -497,6 +538,7 @@
       console.log("class", classString);
 
       runForce(data);
+      generateLabels(data);
 
       // const radiusScale = d3
       //   .scaleLinear()
