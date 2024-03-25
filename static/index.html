@@ -112,9 +112,9 @@
             .attr(
               "class",
               `rect-${
-                label == "Peanuty Almondy"
+                label == "Nutty"
                   ? "peanutyalmondy"
-                  : label == "Crisped Rice Wafer"
+                  : label == "Multipiece"
                   ? "crispedricewafer"
                   : label
               } color-text`
@@ -139,9 +139,9 @@
             .attr(
               "class",
               `rect-${
-                label == "Peanuty Almondy"
+                label == "Nutty"
                   ? "peanutyalmondy"
-                  : label == "Crisped Rice Wafer"
+                  : label == "Multipiece"
                   ? "crispedricewafer"
                   : label
               } color-rect`
@@ -161,9 +161,9 @@
             .attr(
               "class",
               `rect-${
-                label == "Peanuty Almondy"
+                label == "Nutty"
                   ? "peanutyalmondy"
-                  : label == "Crisped Rice Wafer"
+                  : label == "Multipiece"
                   ? "crispedricewafer"
                   : label
               } color-text`
@@ -244,9 +244,9 @@
 
     const handleFilterClick = (label, svg, data) => {
       let modifiedLabel =
-        label == "Peanuty Almondy"
+        label == "Nutty"
           ? "peanutyalmondy"
-          : label == "Crisped Rice Wafer"
+          : label == "Multipiece"
           ? "crispedricewafer"
           : label;
       if (modifiedLabel === "Deselect All") {
@@ -339,6 +339,55 @@
           .style("fill", "white")
           .attr("transform", `translate(0, 20)`);
       });
+    };
+
+    const createTooltip = (data, svg, onOff) => {
+      console.log(data);
+      const tooltip = svg
+        .append("g")
+        .attr("class", `candyInfo`)
+        .attr("transform", `translate(400, 0)`);
+
+      tooltip
+        .append("rect")
+        .attr("class", `candyInfoRect`)
+        .attr("width", 270)
+        .attr("height", 80)
+        .attr("fill", "white")
+        .attr("rx", 5)
+        .attr("ry", 5)
+        .attr("stroke", "black")
+        .attr("stroke-width", 1);
+      if (!onOff) {
+        d3.selectAll(`.candyInfo`).classed("display-none", true);
+      }
+      tooltip
+        .append("text")
+        .text(`${data.competitorname}`)
+        .attr("class", `candyName`)
+        .attr("x", 15)
+        .attr("y", 25)
+        .style("font-size", "18px")
+        .style("font-weight", "bold")
+        .style("fill", "black");
+      tooltip
+        .append("text")
+        .text(`Win Percentage: ${parseFloat(data.winpercent).toFixed(1)}%`)
+        .attr("class", `candyWin`)
+        .attr("x", 15)
+        .attr("y", 45)
+        .style("font-size", "14px")
+        // .style("font-weight", "bold")
+        .style("fill", "black");
+      tooltip
+        .append("text")
+        .text(`Rank: ${data.rank}`)
+        .attr("class", `candyRank`)
+        .attr("x", 15)
+        .attr("y", 65)
+        .style("font-size", "14px")
+        // .style("font-weight", "bold")
+        .style("fill", "black");
     };
 
     const runForce = (data) => {
@@ -472,10 +521,13 @@
         .attr("class", (d) => classString[d.data.competitorname])
         .attr("r", (d) => radiusScale(parseFloat(d.data.winpercent)))
         .style("fill", "orange")
-        .attr("opacity", 0.7);
-      // .on("mouseover", (event, d) => {
-      //   console.log(d.data);
-      // });
+        .attr("opacity", 0.7)
+        .on("mouseover", (event, d) => {
+          createTooltip(d.data, bubbleSvg, true);
+        })
+        .on("mouseout", (event, d) => {
+          createTooltip(d.data, bubbleSvg, false);
+        });
 
       // const bubbles = bubbleSvg
       //   .selectAll(".candy")
@@ -500,20 +552,29 @@
       const candyIcon = (
         await d3.xml("images/candyIcon.svg")
       ).documentElement.cloneNode(true);
-      console.log(candyIcon);
+
       const data = allData.filter(
         (item) =>
           item.competitorname !== "One dime" &&
           item.competitorname !== "One quarter"
       );
-      console.log(data);
+
+      const sorted_candy = data.sort(
+        (a, b) => parseFloat(b.winpercent) - parseFloat(a.winpercent)
+      );
+
+      sorted_candy.forEach((candy, i) => {
+        candy["rank"] = i + 1;
+      });
+
+      console.log("sorted", sorted_candy);
       const filters = [
         "Chocolate",
         "Fruity",
         "Caramel",
-        "Peanuty Almondy",
+        "Nutty",
         "Nougat",
-        "Crisped Rice Wafer",
+        "Multipiece",
         "Hard",
         "Bar",
         "Pluribus",
