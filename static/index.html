@@ -114,7 +114,7 @@
               `rect-${
                 label == "Nutty"
                   ? "peanutyalmondy"
-                  : label == "Multipiece"
+                  : label == "Crisped Rice Wafer"
                   ? "crispedricewafer"
                   : label
               } color-text`
@@ -141,7 +141,7 @@
               `rect-${
                 label == "Nutty"
                   ? "peanutyalmondy"
-                  : label == "Multipiece"
+                  : label == "Crisped Rice Wafer"
                   ? "crispedricewafer"
                   : label
               } color-rect`
@@ -163,7 +163,7 @@
               `rect-${
                 label == "Nutty"
                   ? "peanutyalmondy"
-                  : label == "Multipiece"
+                  : label == "Crisped Rice Wafer"
                   ? "crispedricewafer"
                   : label
               } color-text`
@@ -246,7 +246,7 @@
       let modifiedLabel =
         label == "Nutty"
           ? "peanutyalmondy"
-          : label == "Multipiece"
+          : label == "Crisped Rice Wafer"
           ? "crispedricewafer"
           : label;
       if (modifiedLabel === "Deselect All") {
@@ -574,10 +574,10 @@
         "Caramel",
         "Nutty",
         "Nougat",
-        "Multipiece",
+        "Crisped Rice Wafer",
         "Hard",
         "Bar",
-        "Pluribus",
+        "Multipiece",
         "Deselect All",
       ];
       addFilterButtons(filters, filterSvg, data);
@@ -592,7 +592,7 @@
         } ${d["crispedricewafer"] === "1" ? "crispedricewafer" : ""} ${
           d["hard"] === "1" ? "Hard" : ""
         } ${d["bar"] === "1" ? "Bar" : ""} ${
-          d["pluribus"] === "1" ? "Pluribus" : ""
+          d["pluribus"] === "1" ? "Multipiece" : ""
         }`;
       });
 
