@@ -16,11 +16,13 @@
       #body {
         display: flex;
         flex-direction: row;
-        margin-left: 10%;
-        margin-right: 10%;
+        margin-left: 5%;
+        margin-right: 5s%;
         margin-top: 40px;
         justify-content: center;
       }
+
+    
 
       .display-none {
         display: none;
@@ -38,7 +40,7 @@
       <img src="images/header.svg" alt="Header" id="headerImg" />
     </div>
     <div id="body">
-      <svg id="filters" height="600" width="350"></svg>
+      <svg id="filters" height="600" width="400"></svg>
       <svg id="bubbleGraph" height="660" width="700"></svg>
     </div>
     <div id="footer">
@@ -188,32 +190,30 @@
             tooltip
               .append("rect")
               .attr("class", `tooltip tooltip-${label.replace(/ /g, "")}`)
-              .attr("width", 136)
-              .attr("height", 126)
-              .attr("fill", "white")
+              .attr("width", 180)
+              .attr("height", 150)
+              .attr("fill", "#747474")
               .attr("rx", 5)
               .attr("ry", 5)
-              .attr("stroke", "black")
-              .attr("stroke-width", 1);
             tooltip
               .append("text")
               .text("Potential Allergens:")
               .attr("class", `tooltip tooltip-${label.replace(/ /g, "")}`)
-              .attr("x", 5)
-              .attr("y", 15)
-              .style("font-size", "13px")
+              .attr("x", 10)
+              .attr("y", 25)
+              .style("font-size", "16px")
               .style("font-weight", "bold")
-              .style("fill", "black");
+              .style("fill", "white");
 
             allergens[label.replace(/ /g, "")].forEach((allergen, i) => {
               tooltip
                 .append("text")
                 .text(allergen)
                 .attr("class", `tooltip tooltip-${label.replace(/ /g, "")}`)
-                .attr("x", 5)
-                .attr("y", 35 + i * 20)
-                .style("font-size", "13px")
-                .style("fill", "black");
+                .attr("x", 15)
+                .attr("y", 50 + i * 20)
+                .style("font-size", "14px")
+                .style("fill", "white");
             });
           }
         }
@@ -353,11 +353,9 @@
         .attr("class", `candyInfoRect`)
         .attr("width", 270)
         .attr("height", 80)
-        .attr("fill", "white")
+        .attr("fill", "#747474")
         .attr("rx", 5)
         .attr("ry", 5)
-        .attr("stroke", "black")
-        .attr("stroke-width", 1);
       if (!onOff) {
         d3.selectAll(`.candyInfo`).classed("display-none", true);
       }
@@ -369,7 +367,7 @@
         .attr("y", 25)
         .style("font-size", "18px")
         .style("font-weight", "bold")
-        .style("fill", "black");
+        .style("fill", "white");
       tooltip
         .append("text")
         .text(`Win Percentage: ${parseFloat(data.winpercent).toFixed(1)}%`)
@@ -378,7 +376,7 @@
         .attr("y", 45)
         .style("font-size", "14px")
         // .style("font-weight", "bold")
-        .style("fill", "black");
+        .style("fill", "white");
       tooltip
         .append("text")
         .text(`Rank: ${data.rank}`)
@@ -387,7 +385,7 @@
         .attr("y", 65)
         .style("font-size", "14px")
         // .style("font-weight", "bold")
-        .style("fill", "black");
+        .style("fill", "white");
     };
 
     const runForce = (data) => {
@@ -520,8 +518,7 @@
         .append("circle")
         .attr("class", (d) => classString[d.data.competitorname])
         .attr("r", (d) => radiusScale(parseFloat(d.data.winpercent)))
-        .style("fill", "orange")
-        .attr("opacity", 0.7)
+        .style("fill", "#FFD056")
         .on("mouseover", (event, d) => {
           createTooltip(d.data, bubbleSvg, true);
         })
